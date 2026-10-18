@@ -1,0 +1,36 @@
+name: optcd-time-A
+
+on:
+- workflow_dispatch
+
+jobs:
+  # Building and testing Java with Maven
+  # https://docs.github.com/en/actions/guides/building-and-testing-java-with-maven
+  Litemall-all:
+    runs-on:
+    - self-hosted
+    - optcd
+    strategy:
+      matrix:
+        java-version:
+        - 8
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK ${{ matrix.java-version }}
+      uses: actions/setup-java@v2
+      with:
+        java-version: ${{ matrix.java-version }}
+        distribution: zulu
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    - name: 'mvn: go-offline (untimed)'
+      run: mvn -B -q dependency:go-offline || true
+    - name: 'mvn: Build with Maven'
+      run: mvn --batch-mode --update-snapshots verify
+
+  # Building and testing Node.js
+  # https://docs.github.com/en/actions/guides/building-and-testing-nodejs
